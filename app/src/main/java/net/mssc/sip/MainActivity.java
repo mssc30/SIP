@@ -193,11 +193,8 @@ public class MainActivity extends AppCompatActivity {
         public void onReceive(Context context, Intent intent) {
             if(intent.getAction().equals("net.mssc.sip.INCOMING_CALL")){
                 Toast.makeText(context, "Llamada entrante ", Toast.LENGTH_LONG).show();
-                // Get instance of Vibrator from current Context
                 v = (Vibrator) context.getSystemService(Context.VIBRATOR_SERVICE);
-//                 Vibrate for 400 milliseconds
                 v.vibrate(3000);
-
             }
             try {
                 SipAudioCall.Listener listener = new SipAudioCall.Listener() {
