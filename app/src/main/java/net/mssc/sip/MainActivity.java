@@ -3,13 +3,17 @@ package net.mssc.sip;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.app.PendingIntent;
+import android.content.BroadcastReceiver;
+import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.net.sip.SipAudioCall;
 import android.net.sip.SipException;
 import android.net.sip.SipManager;
 import android.net.sip.SipProfile;
 import android.net.sip.SipRegistrationListener;
 import android.os.Bundle;
+import android.os.Vibrator;
 import android.util.Log;
 import android.widget.Button;
 import android.widget.Toast;
@@ -33,11 +37,20 @@ public class MainActivity extends AppCompatActivity {
     private SipProfile sipProfile = null;
     private SipProfile.Builder builder = null;
 
+    SipAudioCall call = null;
+    public IncomingCallReceiver callReceiver;
+
     String username = "voldymolt";
     String domain = "sip.antisip.com";
     String password = "caballito";
 
-    Button btnLlamar;
+//    String username1 = "grayskull";
+//    String domain1 = "sip.antisip.com";
+//    String password1 = "shadowprime";
+
+
+    Button btnLlamar, btnResponder;
+    boolean veri = true;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -60,11 +73,23 @@ public class MainActivity extends AppCompatActivity {
         btnLlamar = findViewById(R.id.btnLlamar);
         btnLlamar.setOnClickListener(v->{
             try {
-                SipAudioCall call = sipManager.makeAudioCall(sipProfile.getUriString(), "sip:caballito@sip.antisip.com", listener, 30);
+                SipAudioCall call = sipManager.makeAudioCall(sipProfile.getUriString(), "sip:grayskull@sip.antisip.com", listener, 30);
                 Log.d("CALL", call.getState()+"");
             } catch (SipException e) {
                 e.printStackTrace();
             }
+        });
+
+        btnResponder = findViewById(R.id.btnResponder);
+        btnResponder.setOnClickListener(v->{
+            if(veri){
+                btnResponder.setText("Colgar");
+                veri = false;
+            }else {
+                btnResponder.setText("Contestar");
+                veri = true;
+            }
+            callReceiver.accept();
         });
 
         //INICIARLIZAR SIP MANAGER
@@ -83,7 +108,7 @@ public class MainActivity extends AppCompatActivity {
 
         /**Abre el perfil local para realizar o recibir llamadas SIP genéricas**/
         Intent intent = new Intent();
-        intent.setAction("android.SipDemo.INCOMING_CALL");
+        intent.setAction("net.mssc.sip.INCOMING_CALL");
         PendingIntent pendingIntent = PendingIntent.getBroadcast(this, 0, intent, Intent.FILL_IN_DATA);
         try {
             sipManager.open(sipProfile, pendingIntent, null);
@@ -112,6 +137,14 @@ public class MainActivity extends AppCompatActivity {
         } catch (SipException e) {
             e.printStackTrace();
         }
+
+        /**
+         * Filtro que intercepta la transmisión y activa el receptor (IncomingCallReceiver)
+         */
+        IntentFilter filter = new IntentFilter();
+        filter.addAction("net.mssc.sip.INCOMING_CALL");
+        callReceiver = new IncomingCallReceiver();
+        this.registerReceiver(callReceiver, filter);
 
     }
 
@@ -147,6 +180,72 @@ public class MainActivity extends AppCompatActivity {
             }
         } catch (Exception ee) {
             Log.d("HERA", "Failed to close local profile.");
+        }
+    }
+
+    /**
+     * Para recibir una llamada se tiene que configurar un BroadcastReceiver
+     */
+    public static class IncomingCallReceiver extends BroadcastReceiver {
+        SipAudioCall incomingCall = null;
+        Vibrator v = null;
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            if(intent.getAction().equals("net.mssc.sip.INCOMING_CALL")){
+                Toast.makeText(context, "Llamada entrante ", Toast.LENGTH_LONG).show();
+                // Get instance of Vibrator from current Context
+                v = (Vibrator) context.getSystemService(Context.VIBRATOR_SERVICE);
+//                 Vibrate for 400 milliseconds
+                v.vibrate(3000);
+
+            }
+            try {
+                SipAudioCall.Listener listener = new SipAudioCall.Listener() {
+                    @Override
+                    public void onRinging(SipAudioCall call, SipProfile caller) {
+                        try {
+                            call.answerCall(30);
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
+                    }
+                };
+                MainActivity wtActivity = (MainActivity) context;
+                incomingCall = wtActivity.sipManager.takeAudioCall(intent, listener);
+                wtActivity.call = incomingCall;
+                if(incomingCall.isMuted()) {
+                    incomingCall.toggleMute();
+                }
+//                wtActivity.updateStatus(incomingCall);
+            } catch (Exception e) {
+                if (incomingCall != null) {
+                    incomingCall.close();
+                }
+            }
+        }
+        boolean ver = true;
+        public void accept()
+        {
+            Log.d("Receiver","Answer");
+            v.cancel();
+            try {
+                if(ver){
+                    incomingCall.answerCall(30);
+                    incomingCall.startAudio();
+                    incomingCall.setSpeakerMode(true);
+                    ver = false;
+                }else{
+                    incomingCall.close();
+                    ver = true;
+                }
+            } catch (SipException e) {
+                Log.d("Call Exception",e.toString());
+                e.printStackTrace();
+            }
+            catch (Exception e)
+            {
+                Log.d("Exception",e.toString());
+            }
         }
     }
 

@@ -14,6 +14,7 @@
     <uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS" />
     <uses-permission android:name="android.permission.PROCESS_OUTGOING_CALLS" />
     <uses-permission android:name="android.permission.READ_PHONE_STATE" />
+    <uses-permission android:name="android.permission.VIBRATE"/>
 
 
     <!-- controlar cómo se filtra tu aplicación desde dispositivos que no admiten SIP -->
@@ -21,8 +22,6 @@
     <uses-feature android:name="android.hardware.wifi" android:required="true" />
     <uses-feature android:name="android.hardware.microphone" android:required="true" />
 
-    <!-- receptor para recibir llamadas
-    <receiver android:name=".IncomingCallReceiver" android:label="Call Receiver" /> -->
 
     <application
         android:allowBackup="true"
@@ -38,6 +37,8 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+        <!-- receptor para recibir llamadas -->
+        <receiver android:name=".MainActivity$IncomingCallReceiver" android:label="Call Receiver" />
     </application>
 
 </manifest>

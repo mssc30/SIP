@@ -13,6 +13,19 @@
         android:text="Llamar"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.498"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.443" />
+
+    <Button
+        android:id="@+id/btnResponder"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="36dp"
+        android:layout_marginEnd="5dp"
+        android:layout_marginRight="5dp"
+        android:text="Contestar"
+        app:layout_constraintEnd_toEndOf="@+id/btnLlamar"
+        app:layout_constraintTop_toBottomOf="@+id/btnLlamar" />
 </androidx.constraintlayout.widget.ConstraintLayout>
